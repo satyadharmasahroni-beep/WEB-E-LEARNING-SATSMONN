@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning Portal - Akses Masuk</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            font-size: 2.8rem;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        /* Tab Switcher Style */
+        .tab-container {
+            display: flex;
+            background: #e5e7eb;
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: none;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: transparent;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        input[type="email"], input[type="password"], input[type="text"], select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 2px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        button.action-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+            margin-top: 10px;
+        }
+
+        button.action-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="logo-area">
+        <div class="logo-icon">🎓</div>
+        <h2>E-Learning Portal</h2>
+    </div>
+
+    <div class="tab-container">
+        <button class="tab-btn active" id="btn-tab-masuk" onclick="gantiTab('masuk')">Masuk</button>
+        <button class="tab-btn" id="btn-tab-daftar" onclick="gantiTab('daftar')">Daftar Baru</button>
+    </div>
+
+    <div id="panel-masuk">
+        <div class="form-group">
+            <label for="login-gmail">Email Google (Gmail)</label>
+            <input type="email" id="login-gmail" placeholder="nama@gmail.com">
+        </div>
+        <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <button type="button" class="action-btn" onclick="prosesLogin()">Masuk Sekarang 🚪</button>
+    </div>
+
+    <div id="panel-daftar" class="hidden">
+        <div id="step-gmail">
+            <div class="form-group">
+                <label for="gmail">Email Google (Gmail) Baru</label>
+                <input type="email" id="gmail" placeholder="nama@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Buat Password</label>
+                <input type="password" id="password" placeholder="Minimal 6 karakter">
+            </div>
+            <button type="button" class="action-btn" onclick="keTahapDua()">Berikutnya ➡️</button>
+        </div>
+
+        <div id="step-peran" class="hidden">
+            <div class="form-group">
+                <label for="peran">Daftar Sebagai:</label>
+                <select id="peran" onchange="tampilkanFormPeran()">
+                    <option value="">-- Pilih Peran Anda --</option>
+                    <option value="siswa">Siswa / Murid</option>
+                    <option value="guru">Guru / Pengajar</option>
+                </select>
+            </div>
+
+            <div id="form-siswa" class="hidden">
+                <div class="form-group">
+                    <label for="nama-siswa">Nama Lengkap</label>
+                    <input type="text" id="nama-siswa" placeholder="Nama lengkap Anda">
+                </div>
+                <div class="form-group">
+                    <label for="kelas-siswa">Kelas</label>
+                    <select id="kelas-siswa">
+                        <option value="10">Kelas 10</option>
+                        <option value="11">Kelas 11</option>
+                        <option value="12">Kelas 12</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="jurusan-siswa">Jurusan</label>
+                    <input type="text" id="jurusan-siswa" placeholder="Contoh: RPL, TKJ, IPA">
+                </div>
+                <div class="form-group">
+                    <label>Pilih Mata Pelajaran Anda (Minimal 3):</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Bahasa Inggris"> Bahasa Inggris</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Bahasa Indonesia"> Bahasa Indonesia</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Matematika"> Matematika</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Sejarah"> Sejarah</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Informatika"> Informatika</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="Basis Data"> Basis Data</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-siswa" value="PKN"> PKN</div>
+                    </div>
+                </div>
+                <button type="button" class="action-btn" onclick="submitData('siswa')">Selesaikan Pendaftaran 🎉</button>
+            </div>
+
+            <div id="form-guru" class="hidden">
+                <div class="form-group">
+                    <label for="kelas-guru">Kelas Fokus Mengajar</label>
+                    <select id="kelas-guru">
+                        <option value="10">Kelas 10</option>
+                        <option value="11">Kelas 11</option>
+                        <option value="12">Kelas 12</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="jurusan-guru">Jurusan Fokus</label>
+                    <input type="text" id="jurusan-guru" placeholder="Contoh: RPL, TKJ, IPA">
+                </div>
+                <div class="form-group">
+                    <label>Mata Pelajaran Pengajaran (Wajib Tepat 3 Mapel):</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Bahasa Inggris"> Bahasa Inggris</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Bahasa Indonesia"> Bahasa Indonesia</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Matematika"> Matematika</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Sejarah"> Sejarah</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Informatika"> Informatika</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="Basis Data"> Basis Data</div>
+                        <div class="checkbox-item"><input type="checkbox" name="mapel-guru" value="PKN"> PKN</div>
+                    </div>
+                </div>
+                <button type="button" class="action-btn" onclick="submitData('guru')">Selesaikan Pendaftaran 🚀</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+     const firebaseConfig = {
+        apiKey: "AlzaSyBhMZjfsgB7HMrtxjU4ei_c3rBOKGHgKM8",
+        authDomain: "itulah-92c9e.firebaseapp.com",
+        databaseURL: "https://itulah-92c9e-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "itulah-92c9e",
+        storageBucket: "itulah-92c9e.firebasestorage.app",
+        messagingSenderId: "366031471993",
+        appId: "1:366031471993:web:5da6e29ddc7ceeb670dba8",
+        measurementId: "G-61YZZV4CZT"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let dataGmail = "";
+    let dataPassword = "";
+
+    // Fungsi Navigasi Klik Tab Atas
+    function gantiTab(tipe) {
+        const tabMasuk = document.getElementById('btn-tab-masuk');
+        const tabDaftar = document.getElementById('btn-tab-daftar');
+        const panelMasuk = document.getElementById('panel-masuk');
+        const panelDaftar = document.getElementById('panel-daftar');
+
+        if (tipe === 'masuk') {
+            tabMasuk.classList.add('active');
+            tabDaftar.classList.remove('active');
+            panelMasuk.classList.remove('hidden');
+            panelDaftar.classList.add('hidden');
+        } else {
+            tabDaftar.classList.add('active');
+            tabMasuk.classList.remove('active');
+            panelDaftar.classList.remove('hidden');
+            panelMasuk.classList.add('hidden');
+            
+            // Reset ke step 1 registrasi
+            document.getElementById('step-gmail').classList.remove('hidden');
+            document.getElementById('step-peran').classList.add('hidden');
+        }
+    }
+
+    // ================= SCRIPT LOGIC: PROSES MASUK (LOGIN) =================
+    function prosesLogin() {
+        const inputEmail = document.getElementById('login-gmail').value.trim();
+        const inputPassword = document.getElementById('login-password').value;
+
+        if (inputEmail === "" || inputPassword === "") {
+            alert("Harap masukkan email dan password Akun Anda!");
+            return;
+        }
+
+        const emailKey = inputEmail.replace(/\./g, ',');
+
+        // Cari data email di node 'pengguna' Firebase
+        database.ref('pengguna/' + emailKey).once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                
+                // Cek Validasi Password cocok/tidak
+                if (userData.password === inputPassword) {
+                    alert("Akses Masuk Diterima! Selamat Datang Kembali.");
+                    
+                    if (userData.peran === 'siswa') {
+                        localStorage.setItem('siswaAktif', JSON.stringify(userData));
+                        window.location.href = 'siswa.html';
+                    } else if (userData.peran === 'guru') {
+                        localStorage.setItem('guruAktif', JSON.stringify(userData));
+                        window.location.href = 'guru.html';
+                    }
+                } else {
+                    alert("Gagal Masuk: Password yang Anda masukkan keliru!");
+                }
+            } else {
+                alert("Akun tidak ditemukan! Silakan klik tab 'Daftar Baru' terlebih dahulu.");
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            alert("Terjadi kendala jaringan: " + error.message);
+        });
+    }
+
+    // ================= SCRIPT LOGIC: PROSES REGISTER (DAFTAR) =================
+    function keTahapDua() {
+        dataGmail = document.getElementById('gmail').value.trim();
+        dataPassword = document.getElementById('password').value;
+
+        if (dataGmail === "" || dataPassword === "") {
+            alert("Harap buat Gmail dan Password Anda terlebih dahulu!");
+            return;
+        }
+        if (dataPassword.length < 6) {
+            alert("Keamanan Lemah: Password minimal harus terdiri dari 6 karakter!");
+            return;
+        }
+        
+        document.getElementById('step-gmail').classList.add('hidden');
+        document.getElementById('step-peran').classList.remove('hidden');
+    }
+
+    function tampilkanFormPeran() {
+        const peran = document.getElementById('peran').value;
+        const formSiswa = document.getElementById('form-siswa');
+        const formGuru = document.getElementById('form-guru');
+
+        if (peran === 'siswa') {
+            formSiswa.classList.remove('hidden');
+            formGuru.classList.add('hidden');
+        } else if (peran === 'guru') {
+            formGuru.classList.remove('hidden');
+            formSiswa.classList.add('hidden');
+        } else {
+            formSiswa.classList.add('hidden');
+            formGuru.classList.add('hidden');
+        }
+    }
+
+    function submitData(peran) {
+        let payload = {
+            gmail: dataGmail,
+            password: dataPassword, 
+            peran: peran,
+            timestamp: new Date().toISOString()
+        };
+
+        if (peran === 'siswa') {
+            const namaSiswa = document.getElementById('nama-siswa').value.trim();
+            const kelasSiswa = document.getElementById('kelas-siswa').value;
+            const jurusanSiswa = document.getElementById('jurusan-siswa').value.trim();
+            const checkboxes = document.querySelectorAll('input[name="mapel-siswa"]:checked');
+
+            if (namaSiswa === "" || jurusanSiswa === "") {
+                alert("Mohon isi identitas sekolah lengkap Anda!");
+                return;
+            }
+            if (checkboxes.length < 3) {
+                alert("Wajib memilih sekurang-kurangnya 3 Mata Pelajaran pilihan!");
+                return;
+            }
+
+            let mapelDipilih = [];
+            checkboxes.forEach(cb => mapelDipilih.push(cb.value));
+
+            payload.namaPanjang = namaSiswa;
+            payload.kelas = kelasSiswa;
+            payload.jurusan = jurusanSiswa;
+            payload.mapel = mapelDipilih;
+
+        } else if (peran === 'guru') {
+            const kelasGuru = document.getElementById('kelas-guru').value;
+            const jurusanGuru = document.getElementById('jurusan-guru').value.trim();
+            const checkboxes = document.querySelectorAll('input[name="mapel-guru"]:checked');
+
+            if (jurusanGuru === "") {
+                alert("Mohon tentukan kompetensi jurusan pengajaran Anda!");
+                return;
+            }
+            
+            // =========================================================================
+            // PERUBAHAN UTAMA: Validasi ketat penguncian tepat 3 mata pelajaran
+            // =========================================================================
+            if (checkboxes.length !== 3) {
+                alert("Gagal mendaftar! Sebagai Guru, Anda wajib memilih tepat 3 Mata Pelajaran (tidak boleh kurang atau lebih). Saat ini Anda memilih " + checkboxes.length + " mapel.");
+                return;
+            }
+
+            let mapelDiajar = [];
+            checkboxes.forEach(cb => mapelDiajar.push(cb.value));
+
+            payload.kelasDimasuki = kelasGuru;
+            payload.jurusan = jurusanGuru;
+            payload.mapel = mapelDiajar;
+        }
+
+        const emailKey = dataGmail.replace(/\./g, ',');
+
+        // Simpan Akun Baru ke Database
+        database.ref('pengguna/' + emailKey).set(payload)
+        .then(() => {
+            if (peran === 'siswa') {
+                alert("Pendaftaran Berhasil! Mengalihkan ke ruang kelas...");
+                localStorage.setItem('siswaAktif', JSON.stringify(payload));
+                window.location.href = 'siswa.html';
+            } else {
+                alert("Pendaftaran Berhasil! Mengalihkan ke ruang pengajar...");
+                localStorage.setItem('guruAktif', JSON.stringify(payload));
+                window.location.href = 'guru.html';
+            }
+        })
+        .catch((error) => {
+            alert("Error registrasi: " + error.message);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning - Ruang Guru</title>
+    <style>
+        :root {
+            --primary-color: #059669;
+            --primary-hover: #047857;
+            --bg-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --text-main: #1f2937;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 450px; margin-bottom: 30px; }
+        h2 { color: var(--primary-color); margin-top: 0; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); }
+        input[type="text"], input[type="datetime-local"], select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        input[type="file"] { width: 100%; padding: 15px; border: 2px dashed var(--primary-color); border-radius: 10px; background: #f8fafc; cursor: pointer; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        button:hover:not(:disabled) { background: var(--primary-hover); }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        /* Style Tabel Jawaban Siswa */
+        .container-tabel { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 950px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
+        th { background-color: #f3f4f6; color: var(--text-main); font-weight: 600; }
+        .btn-unduh { padding: 6px 12px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+        .btn-unduh:hover { background-color: #2563eb; }
+        .btn-simpan { padding: 6px 12px; background-color: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-left: 5px;}
+        .btn-simpan:hover { background-color: #059669; }
+        .badge-terlambat { background-color: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+        .badge-tepat { background-color: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📋 Ruang Pembuatan Tugas (Guru)</h2>
+    <hr style="border: 1px solid #e5e7eb; margin-bottom: 20px;">
+
+    <div class="form-group">
+        <label for="judul-tugas">Judul / Nama Tugas</label>
+        <input type="text" id="judul-tugas" placeholder="Contoh: Tugas 1 Aljabar Linear">
+    </div>
+
+    <div class="form-group">
+        <label for="mapel-tugas">Mata Pelajaran Anda</label>
+        <select id="mapel-tugas">
+            <option value="">Memuat bidang mapel Anda... ⏳</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="kelas-tujuan">Target Kelas & Jurusan</label>
+        <select id="kelas-tujuan">
+            <option value="">Memuat target kelas mengajar... ⏳</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="tenggat-tugas">Batas Waktu Pengumpulan (Tenggat)</label>
+        <input type="datetime-local" id="tenggat-tugas">
+    </div>
+
+    <div class="form-group">
+        <label for="file-soal">Unggah PDF Soal/Tugas</label>
+        <input type="file" id="file-soal" accept=".pdf, application/pdf">
+    </div>
+
+    <button type="button" id="btn-publish" onclick="publishTugas()">Sebarkan Tugas ke Siswa 🚀</button>
+</div>
+
+<div class="container-tabel">
+    <h3 style="color: var(--primary-color); margin-top: 0;">📥 Daftar Pengumpulan Jawaban Siswa</h3>
+    <hr style="border: 1px solid #e5e7eb; margin-bottom: 15px;">
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Siswa</th>
+                    <th>Judul Tugas</th>
+                    <th>Waktu Kumpul</th>
+                    <th>Status</th>
+                    <th>Nilai</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tabel-jawaban-body">
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #9ca3af;">Memuat data jawaban khusus kelas Anda... ⏳</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AlzaSyBhMZjfsgB7HMrtxjU4ei_c3rBOKGHgKM8",
+        authDomain: "itulah-92c9e.firebaseapp.com",
+        databaseURL: "https://itulah-92c9e-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "itulah-92c9e",
+        storageBucket: "itulah-92c9e.firebasestorage.app",
+        messagingSenderId: "366031471993",
+        appId: "1:366031471993:web:5da6e29ddc7ceeb670dba8",
+        measurementId: "G-61YZZV4CZT"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const guruAktif = JSON.parse(localStorage.getItem('guruAktif'));
+    if (!guruAktif) {
+        alert("Akses ditolak! Anda harus login sebagai Guru.");
+        window.location.href = 'index.html';
+    } else {
+        const selectMapel = document.getElementById('mapel-tugas');
+        selectMapel.innerHTML = ""; 
+
+        if (guruAktif.mapel && Array.isArray(guruAktif.mapel)) {
+            guruAktif.mapel.forEach((namaMapel) => {
+                const opsi = document.createElement('option');
+                opsi.value = namaMapel;
+                opsi.innerText = namaMapel;
+                selectMapel.appendChild(opsi);
+            });
+        }
+
+        const selectKelas = document.getElementById('kelas-tujuan');
+        selectKelas.innerHTML = ""; 
+        const jurusanUser = guruAktif.jurusan || "Animasi"; 
+        const listTingkatKelas = ["10", "11", "12"];
+
+        listTingkatKelas.forEach((tingkat) => {
+            const opsiKelas = document.createElement('option');
+            const teksLengkap = `${tingkat} ${jurusanUser}`;
+            opsiKelas.value = teksLengkap;
+            opsiKelas.innerText = teksLengkap;
+            if (tingkat === guruAktif.kelasDimasuki) { opsiKelas.selected = true; }
+            selectKelas.appendChild(opsiKelas);
+        });
+    }
+
+    async function publishTugas() {
+        const judul = document.getElementById('judul-tugas').value.trim();
+        const mapel = document.getElementById('mapel-tugas').value;
+        const kelasTujuan = document.getElementById('kelas-tujuan').value; 
+        const tenggatWaktu = document.getElementById('tenggat-tugas').value; // Ambil nilai tanggal tenggat
+        const fileInput = document.getElementById('file-soal');
+        const file = fileInput.files[0];
+        const btn = document.getElementById('btn-publish');
+
+        if (judul === "" || mapel === "" || tenggatWaktu === "" || !file) {
+            alert("Mohon lengkapi judul, mapel, tenggat waktu, dan file PDF soal!"); return;
+        }
+
+        if (btn) { btn.innerHTML = "Mengunggah Soal... ⏳"; btn.disabled = true; }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        
+        reader.onload = async function (e) {
+            const base64PDF = e.target.result;
+            const idTugas = 'tugas_' + new Date().getTime();
+
+            try {
+                await database.ref('tugas_guru/' + idTugas).set({
+                    idTugas: idTugas,
+                    judul: judul,
+                    mapel: mapel,
+                    kelasTujuan: kelasTujuan, 
+                    tenggatWaktu: tenggatWaktu, // Simpan info tenggat ke DB
+                    urlSoal: base64PDF, 
+                    pembuat: guruAktif.gmail,
+                    waktuDibuat: new Date().toISOString()
+                });
+
+                alert("Tugas Berhasil Diterbitkan dengan Tenggat Waktu! 🎉");
+                document.getElementById('judul-tugas').value = "";
+                document.getElementById('tenggat-tugas').value = "";
+                fileInput.value = "";
+            } catch (error) {
+                alert("Terjadi kesalahan: " + error.message);
+            } finally {
+                if (btn) { btn.innerHTML = "Sebarkan Tugas ke Siswa 🚀"; btn.disabled = false; }
+            }
+        };
+    }
+
+    // LISTENER MENAMPILKAN JAWABAN & KOLOM INPUT NILAI
+    database.ref('tugas_guru').orderByChild('pembuat').equalTo(guruAktif.gmail).on('value', (tugasSnapshot) => {
+        const daftarTugasSaya = [];
+        tugasSnapshot.forEach((child) => { daftarTugasSaya.push(child.key); });
+
+        database.ref('pengumpulan_tugas').on('value', (snapshot) => {
+            const tbody = document.getElementById('tabel-jawaban-body');
+            tbody.innerHTML = "";
+            let adaData = false;
+
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    const idKumpul = childSnapshot.key;
+                    
+                    if (daftarTugasSaya.includes(data.idTugas)) {
+                        adaData = true;
+                        const waktu = new Date(data.waktuKumpul).toLocaleString('id-ID');
+                        
+                        // Menentukan badge keterlambatan
+                        const badgeStatus = data.status === "TERLAMBAT" 
+                            ? `<span class="badge-terlambat">TERLAMBAT ❌</span>` 
+                            : `<span class="badge-tepat">Tepat Waktu  ✔</span>`;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><b>${data.namaSiswa}</b><br><small>${data.emailSiswa}</small></td>
+                            <td>${data.judulTugas}</td>
+                            <td>${waktu}</td>
+                            <td>${badgeStatus}</td>
+                            <td>
+                                <input type="number" id="nilai-${idKumpul}" value="${data.nilai || ''}" placeholder="0-100" style="width:70px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                            </td>
+                            <td>
+                                <button class="btn-unduh" onclick="unduhJawabanSiswa('${data.urlJawaban}', '${data.namaSiswa}_${data.judulTugas}')">📄 Lihat</button>
+                                <button class="btn-simpan" onclick="simpanNilaiSiswa('${idKumpul}')">⭐ Simpan</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
+
+            if (!adaData) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #9ca3af;">Belum ada jawaban dari siswa.</td></tr>`;
+            }
+        });
+    });
+
+    // FITUR BARU: FUNGSI MENYIMPAN NILAI KE FIREBASE
+    async function simpanNilaiSiswa(idKumpul) {
+        const inputNilai = document.getElementById(`nilai-${idKumpul}`);
+        const nilaiBaru = inputNilai.value.trim();
+
+        if(nilaiBaru === "") {
+            alert("Harap masukkan nilai terlebih dahulu!"); return;
+        }
+
+        try {
+            await database.ref('pengumpulan_tugas/' + idKumpul).update({
+                nilai: nilaiBaru
+            });
+            alert("Nilai berhasil disimpan dan dikirim ke siswa! ⭐");
+        } catch (error) {
+            alert("Gagal menyimpan nilai: " + error.message);
+        }
+    }
+
+    function unduhJawabanSiswa(base64Data, namaFile) {
+        try {
+            const parts = base64Data.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const uInt8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) { uInt8Array[i] = raw.charCodeAt(i); }
+            const blob = new Blob([uInt8Array], { type: contentType });
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = "Jawaban_" + namaFile + ".pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        } catch (e) { alert("Gagal mengunduh: " + e.message); }
+    }
+</script>
+</body>
+</html>

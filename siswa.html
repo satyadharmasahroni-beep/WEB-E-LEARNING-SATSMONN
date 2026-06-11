@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning - Ruang Siswa</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-main: #1f2937;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 700px; margin-bottom: 30px; box-sizing: border-box; }
+        h2 { color: var(--primary-color); margin-top: 0; text-align: center; }
+        .info-profil { background: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 25px; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; }
+        
+        .card-tugas { border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: #fff; position: relative; }
+        .meta-tugas { font-size: 0.85rem; color: #6b7280; margin-bottom: 12px; }
+        .badge { background: #e0e7ff; color: var(--primary-color); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+        .badge-tenggat { background: #fff1f2; color: #e11d48; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; border: 1px solid #fecdd3; }
+        
+        .btn-aksi { padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; margin-right: 10px; }
+        .btn-lihat { background: #3b82f6; color: white; }
+        .btn-lihat:hover { background: #2563eb; }
+        
+        .upload-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e5e7eb; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .btn-kumpul { background: #10b981; color: white; }
+        .btn-kumpul:hover { background: #059669; }
+        
+        /* Style Status & Informasi Nilai */
+        .status-box { margin-top: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border-left: 5px solid #cbd5e1; font-size: 0.9rem; }
+        .score-badge { font-size: 1.2rem; color: #b45309; font-weight: 800; background: #fef3c7; padding: 2px 10px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>✍️ Ruang Belajar & Tugas Siswa</h2>
+    <hr style="border: 1px solid #e5e7eb; margin-bottom: 20px;">
+
+    <div class="info-profil" id="profil-siswa">Memuat identitas kelas Anda... ⏳</div>
+
+    <h3 style="color: var(--text-main); margin-bottom: 15px;">📚 Daftar Tugas & Nilai Anda:</h3>
+    <div id="list-tugas-container">
+        <div style="text-align: center; color: #9ca3af; padding: 20px;">Mencari tugas... ⏳</div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AlzaSyBhMZjfsgB7HMrtxjU4ei_c3rBOKGHgKM8",
+        authDomain: "itulah-92c9e.firebaseapp.com",
+        databaseURL: "https://itulah-92c9e-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "itulah-92c9e",
+        storageBucket: "itulah-92c9e.firebasestorage.app",
+        messagingSenderId: "366031471993",
+        appId: "1:366031471993:web:5da6e29ddc7ceeb670dba8",
+        measurementId: "G-61YZZV4CZT"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const siswaAktif = JSON.parse(localStorage.getItem('siswaAktif'));
+    if (!siswaAktif) {
+        alert("Akses ditolak! Login dulu."); window.location.href = 'index.html';
+    }
+
+    const kelasSiswaLengkap = `${siswaAktif.kelas} ${siswaAktif.jurusan}`;
+
+    document.getElementById('profil-siswa').innerHTML = `
+        <b>Nama:</b> ${siswaAktif.namaPanjang} | <b>Kelas:</b> <span style="color:#4f46e5; font-weight:bold;">${kelasSiswaLengkap}</span><br>
+        <b>Email:</b> ${siswaAktif.gmail}
+    `;
+
+    // Penyimpanan data lokal agar reaktif saat ada penilaian masuk
+    let listTugasGlobal = [];
+    let listJawabanSayaGlobal = {};
+
+    // Listener 1: Ambil data Tugas Guru
+    database.ref('tugas_guru').orderByChild('kelasTujuan').equalTo(kelasSiswaLengkap).on('value', (snapshot) => {
+        listTugasGlobal = [];
+        snapshot.forEach((child) => { listTugasGlobal.push(child.val()); });
+        renderHalamanSiswa();
+    });
+
+    // Listener 2: Ambil riwayat pengumpulan siswa aktif (untuk cek nilai)
+    database.ref('pengumpulan_tugas').orderByChild('emailSiswa').equalTo(siswaAktif.gmail).on('value', (snapshot) => {
+        listJawabanSayaGlobal = {};
+        snapshot.forEach((child) => {
+            const data = child.val();
+            listJawabanSayaGlobal[data.idTugas] = data; // Simpan berdasarkan ID Tugas
+        });
+        renderHalamanSiswa();
+    });
+
+    // FUNGSI RENDER UTAMA
+    function renderHalamanSiswa() {
+        const container = document.getElementById('list-tugas-container');
+        container.innerHTML = "";
+
+        if (listTugasGlobal.length === 0) {
+            container.innerHTML = `<div style="text-align: center; color: #9ca3af; padding: 20px;">Belum ada tugas untuk kelas ${kelasSiswaLengkap}.</div>`;
+            return;
+        }
+
+        listTugasGlobal.forEach((tugas) => {
+            const formatTenggat = new Date(tugas.tenggatWaktu).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+            const riwayatKumpul = listJawabanSayaGlobal[tugas.idTugas];
+
+            let htmlStatusKumpul = "";
+            if (riwayatKumpul) {
+                const warnaStatus = riwayatKumpul.status === "TERLAMBAT" ? "red" : "green";
+                const infoNilai = riwayatKumpul.nilai 
+                    ? `| Nilai Anda: <span class="score-badge">${riwayatKumpul.nilai}</span>` 
+                    : `| <i style="color:#6b7280;">Belum dinilai oleh Guru</i>`;
+
+                htmlStatusKumpul = `
+                    <div class="status-box" style="border-left-color: ${warnaStatus};">
+                        Status Pengumpulan: <b style="color:${warnaStatus};">${riwayatKumpul.status}</b> ${infoNilai}
+                    </div>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'card-tugas';
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                    <h4 style="margin: 0; color: #1f2937;">📋 ${tugas.judul}</h4>
+                    <span class="badge">${tugas.mapel}</span>
+                </div>
+                <div class="meta-tugas">Oleh: <b>${tugas.pembuat}</b></div>
+                <div style="margin-bottom: 15px;">
+                    <span class="badge-tenggat">⏳ Batas: ${formatTenggat}</span>
+                </div>
+                
+                <button class="btn-aksi btn-lihat" onclick="bukaPdfSoal('${tugas.urlSoal}')">📄 Buka Soal PDF</button>
+                
+                <div class="upload-box">
+                    <input type="file" id="file-jawab-${tugas.idTugas}" accept=".pdf">
+                    <button class="btn-aksi btn-kumpul" id="btn-kirim-${tugas.idTugas}" onclick="kirimJawabanSiswa('${tugas.idTugas}', '${tugas.judul}', '${tugas.tenggatWaktu}')">
+                        ${riwayatKumpul ? 'Kumpul Ulang 🚀' : 'Kirim Jawaban 🚀'}
+                    </button>
+                </div>
+                ${htmlStatusKumpul}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function bukaPdfSoal(base64Data) {
+        try {
+            const parts = base64Data.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const uInt8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) { uInt8Array[i] = raw.charCodeAt(i); }
+            const blob = new Blob([uInt8Array], { type: contentType });
+            window.open(URL.createObjectURL(blob), '_blank');
+        } catch (e) { alert("Gagal membuka PDF."); }
+    }
+
+    // FITUR UTAMA: VALIDASI STRATEGIS TENGGAT WAKTU (TERLAMBAT)
+    async function kirimJawabanSiswa(idTugas, judulTugas, stringTenggat) {
+        const fileInput = document.getElementById(`file-jawab-${idTugas}`);
+        const file = fileInput.files[0];
+        const btnKirim = document.getElementById(`btn-kirim-${idTugas}`);
+
+        if (!file) { alert("Pilih file PDF jawaban dulu!"); return; }
+
+        // LOGIKA DETEKSI WAKTU
+        const waktuSekarang = new Date();
+        const waktuTenggat = new Date(stringTenggat);
+        let statusPengumpulan = "Tepat Waktu";
+
+        if (waktuSekarang > waktuTenggat) {
+            statusPengumpulan = "TERLAMBAT";
+            alert("⚠️ NOTIFIKASI: Anda mengumpulkan tugas ini TERLAMBAT dari batas waktu yang ditentukan!");
+        }
+
+        btnKirim.innerText = "Mengirim... ⏳"; btnKirim.disabled = true;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async function (e) {
+            const base64Jawaban = e.target.result;
+            const idKumpul = 'kumpul_' + new Date().getTime();
+
+            try {
+                await database.ref('pengumpulan_tugas/' + idKumpul).set({
+                    idTugas: idTugas,
+                    judulTugas: judulTugas,
+                    namaSiswa: siswaAktif.namaPanjang,
+                    emailSiswa: siswaAktif.gmail,
+                    urlJawaban: base64Jawaban,
+                    waktuKumpul: new Date().toISOString(),
+                    status: statusPengumpulan, // Menyimpan status "Tepat Waktu" atau "TERLAMBAT"
+                    nilai: listJawabanSayaGlobal[idTugas]?.nilai || "" // Pertahankan nilai lama jika kumpul ulang
+                });
+
+                alert(`Sukses mengirim jawaban! (${statusPengumpulan}) 🎉`);
+                fileInput.value = "";
+            } catch (error) {
+                alert("Gagal mengirim: " + error.message);
+            } finally {
+                btnKirim.disabled = false; renderHalamanSiswa();
+            }
+        };
+    }
+</script>
+</body>
+</html>
