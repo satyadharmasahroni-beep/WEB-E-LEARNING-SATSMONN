@@ -253,6 +253,10 @@
 
             <div id="form-guru" class="hidden">
                 <div class="form-group">
+                    <label for="kode-rahasia-guru" style="color: #dc2626;">🔑 Kode Token Guru (Wajib)</label>
+                    <input type="password" id="kode-rahasia-guru" placeholder="Masukkan kode rahasia dari Admin..." style="border-color: #fca5a5;">
+                </div>
+                <div class="form-group">
                     <label for="kelas-guru">Kelas Fokus Mengajar</label>
                     <select id="kelas-guru">
                         <option value="10">Kelas 10</option>
@@ -286,7 +290,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-     const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AlzaSyBhMZjfsgB7HMrtxjU4ei_c3rBOKGHgKM8",
         authDomain: "itulah-92c9e.firebaseapp.com",
         databaseURL: "https://itulah-92c9e-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -295,7 +299,7 @@
         messagingSenderId: "366031471993",
         appId: "1:366031471993:web:5da6e29ddc7ceeb670dba8",
         measurementId: "G-61YZZV4CZT"
-};
+    };
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -339,13 +343,11 @@
 
         const emailKey = inputEmail.replace(/\./g, ',');
 
-        // Cari data email di node 'pengguna' Firebase
         database.ref('pengguna/' + emailKey).once('value')
         .then((snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
                 
-                // Cek Validasi Password cocok/tidak
                 if (userData.password === inputPassword) {
                     alert("Akses Masuk Diterima! Selamat Datang Kembali.");
                     
@@ -398,6 +400,8 @@
         } else if (peran === 'guru') {
             formGuru.classList.remove('hidden');
             formSiswa.classList.add('hidden');
+            // Reset input kode jika ganti-ganti dropdown
+            document.getElementById('kode-rahasia-guru').value = "";
         } else {
             formSiswa.classList.add('hidden');
             formGuru.classList.add('hidden');
@@ -436,6 +440,18 @@
             payload.mapel = mapelDipilih;
 
         } else if (peran === 'guru') {
+            // =========================================================================
+            // FITUR BARU: SATPAM KODE RAHASIA
+            // =========================================================================
+            const inputKode = document.getElementById('kode-rahasia-guru').value;
+            const TOKEN_ASLI = "654321"; // <-- GANTI TOKEN INI SESUKA HATIMU
+
+            if (inputKode !== TOKEN_ASLI) {
+                alert("❌ AKSES DITOLAK! Kode token Guru salah. Anda tidak berhak mendaftar sebagai Pengajar.");
+                return; // Proses berhenti di sini!
+            }
+            // =========================================================================
+
             const kelasGuru = document.getElementById('kelas-guru').value;
             const jurusanGuru = document.getElementById('jurusan-guru').value.trim();
             const checkboxes = document.querySelectorAll('input[name="mapel-guru"]:checked');
@@ -445,9 +461,6 @@
                 return;
             }
             
-            // =========================================================================
-            // PERUBAHAN UTAMA: Validasi ketat penguncian tepat 3 mata pelajaran
-            // =========================================================================
             if (checkboxes.length !== 3) {
                 alert("Gagal mendaftar! Sebagai Guru, Anda wajib memilih tepat 3 Mata Pelajaran (tidak boleh kurang atau lebih). Saat ini Anda memilih " + checkboxes.length + " mapel.");
                 return;
@@ -463,7 +476,6 @@
 
         const emailKey = dataGmail.replace(/\./g, ',');
 
-        // Simpan Akun Baru ke Database
         database.ref('pengguna/' + emailKey).set(payload)
         .then(() => {
             if (peran === 'siswa') {
